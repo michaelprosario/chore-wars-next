@@ -15,6 +15,8 @@ public class QuestServiceTests
     private IUserRepository _userRepository = null!;
     private IRepository<QuestCompletion> _completionRepository = null!;
     private IProgressionService _progressionService = null!;
+    private IActivityFeedService _activityFeedService = null!;
+    private ILootDropService _lootDropService = null!;
     private QuestService _service = null!;
     private User _testUser = null!;
     private Quest _testQuest = null!;
@@ -27,7 +29,9 @@ public class QuestServiceTests
         _userRepository = Substitute.For<IUserRepository>();
         _completionRepository = Substitute.For<IRepository<QuestCompletion>>();
         _progressionService = Substitute.For<IProgressionService>();
-        _service = new QuestService(_questRepository, _userRepository, _completionRepository, _progressionService);
+        _activityFeedService = Substitute.For<IActivityFeedService>();
+        _lootDropService = Substitute.For<ILootDropService>();
+        _service = new QuestService(_questRepository, _userRepository, _completionRepository, _progressionService, _activityFeedService, _lootDropService);
 
         _partyId = Guid.NewGuid();
         _testUser = new User
@@ -255,6 +259,26 @@ public class QuestServiceTests
         _questRepository.GetByIdAsync(_testQuest.Id).Returns(_testQuest);
         _userRepository.GetByIdAsync(dm.Id).Returns(dm);
         _userRepository.GetByIdAsync(_testUser.Id).Returns(_testUser);
+
+        // Mock progression service responses
+        _progressionService.AwardXPAsync(Arg.Any<AwardXPCommand>())
+            .Returns(Results.AppResult<UserProgressDto>.Success(new UserProgressDto()));
+        _progressionService.AwardGoldAsync(Arg.Any<AwardGoldCommand>())
+            .Returns(Results.AppResult<UserProgressDto>.Success(new UserProgressDto()));
+        _progressionService.AwardStatsAsync(Arg.Any<AwardStatsCommand>())
+            .Returns(Results.AppResult<UserProgressDto>.Success(new UserProgressDto()));
+        _progressionService.CheckLevelUpAsync(Arg.Any<CheckLevelUpCommand>())
+            .Returns(Results.AppResult<LevelUpDto?>.Success(null));
+
+        // Mock activity feed service responses
+        _activityFeedService.CreateQuestCompletedActivityAsync(
+            Arg.Any<Guid>(), Arg.Any<Guid>(), Arg.Any<string>(),
+            Arg.Any<int>(), Arg.Any<int>(), Arg.Any<int>(), Arg.Any<int>(), Arg.Any<int>())
+            .Returns(Results.AppResult<ActivityFeedItem>.Success(new ActivityFeedItem { Message = "Test" }));
+
+        // Mock loot drop service response
+        _lootDropService.TryGenerateLootDropAsync(Arg.Any<Guid>(), Arg.Any<Guid>())
+            .Returns(Results.AppResult<LootDrop?>.Success(null));
 
         // Act
         var result = await _service.VerifyQuestAsync(command);

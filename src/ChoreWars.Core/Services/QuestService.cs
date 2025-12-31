@@ -12,17 +12,23 @@ public class QuestService : IQuestService
     private readonly IUserRepository _userRepository;
     private readonly IRepository<QuestCompletion> _completionRepository;
     private readonly IProgressionService _progressionService;
+    private readonly IActivityFeedService _activityFeedService;
+    private readonly ILootDropService _lootDropService;
 
     public QuestService(
         IQuestRepository questRepository,
         IUserRepository userRepository,
         IRepository<QuestCompletion> completionRepository,
-        IProgressionService progressionService)
+        IProgressionService progressionService,
+        IActivityFeedService activityFeedService,
+        ILootDropService lootDropService)
     {
         _questRepository = questRepository;
         _userRepository = userRepository;
         _completionRepository = completionRepository;
         _progressionService = progressionService;
+        _activityFeedService = activityFeedService;
+        _lootDropService = lootDropService;
     }
 
     public async Task<AppResult<QuestCompletionDto>> ClaimQuestAsync(ClaimQuestCommand command)
@@ -179,6 +185,19 @@ public class QuestService : IQuestService
             completion.VerifiedAt = DateTime.UtcNow;
             completion.VerifiedByDMId = command.DMId;
 
+            var completionUser = await _userRepository.GetByIdAsync(completion.UserId);
+            if (completionUser == null)
+            {
+                return AppResult<QuestCompletionDto>.Failure("User not found");
+            }
+
+            var oldStats = new
+            {
+                Strength = completionUser.Strength,
+                Intelligence = completionUser.Intelligence,
+                Constitution = completionUser.Constitution
+            };
+
             // Award XP, Gold, and Stats
             await _progressionService.AwardXPAsync(new AwardXPCommand
             {
@@ -201,10 +220,54 @@ public class QuestService : IQuestService
             });
 
             // Check for level up
-            await _progressionService.CheckLevelUpAsync(new CheckLevelUpCommand
+            var levelUpResult = await _progressionService.CheckLevelUpAsync(new CheckLevelUpCommand
             {
                 UserId = completion.UserId
             });
+
+            // Refresh user to get updated stats and level
+            completionUser = await _userRepository.GetByIdAsync(completion.UserId);
+            if (completionUser == null)
+            {
+                return AppResult<QuestCompletionDto>.Failure("User not found after awards");
+            }
+
+            // Create activity feed item for quest completion
+            await _activityFeedService.CreateQuestCompletedActivityAsync(
+                completionUser.Id,
+                completionUser.PartyId,
+                quest.Title,
+                completion.XPEarned,
+                completion.GoldEarned,
+                completion.StrengthGained,
+                completion.IntelligenceGained,
+                completion.ConstitutionGained);
+
+            // Create level up activity if level increased
+            if (levelUpResult.IsSuccess && levelUpResult.Data != null)
+            {
+                await _activityFeedService.CreateLevelUpActivityAsync(
+                    completionUser.Id,
+                    completionUser.PartyId,
+                    levelUpResult.Data.NewLevel);
+            }
+
+            // Try to generate loot drop (20% chance)
+            var lootResult = await _lootDropService.TryGenerateLootDropAsync(
+                completionUser.Id,
+                completion.Id);
+
+            // Create activity feed item if loot was found
+            if (lootResult.IsSuccess && lootResult.Data != null)
+            {
+                await _activityFeedService.CreateLootFoundActivityAsync(
+                    completionUser.Id,
+                    completionUser.PartyId,
+                    lootResult.Data.Name);
+            }
+
+            // Check for stat milestones
+            await CheckAndCreateStatMilestones(completionUser, oldStats.Strength, oldStats.Intelligence, oldStats.Constitution);
         }
         else
         {
@@ -292,5 +355,87 @@ public class QuestService : IQuestService
         }
 
         return AppResult<List<QuestDto>>.Success(questDtos);
+    }
+
+    private async Task CheckAndCreateStatMilestones(User user, int oldStrength, int oldIntelligence, int oldConstitution)
+    {
+        var milestones = new[] { 10, 25, 50, 100, 250, 500 };
+
+        // Check Strength milestones
+        foreach (var milestone in milestones)
+        {
+            if (user.Strength >= milestone && oldStrength < milestone)
+            {
+                var title = GetStatMilestoneTitle("Strength", milestone);
+                await _activityFeedService.CreateStatMilestoneActivityAsync(
+                    user.Id,
+                    user.PartyId,
+                    "Strength",
+                    user.Strength,
+                    title);
+                break; // Only announce one milestone per stat per completion
+            }
+        }
+
+        // Check Intelligence milestones
+        foreach (var milestone in milestones)
+        {
+            if (user.Intelligence >= milestone && oldIntelligence < milestone)
+            {
+                var title = GetStatMilestoneTitle("Intelligence", milestone);
+                await _activityFeedService.CreateStatMilestoneActivityAsync(
+                    user.Id,
+                    user.PartyId,
+                    "Intelligence",
+                    user.Intelligence,
+                    title);
+                break;
+            }
+        }
+
+        // Check Constitution milestones
+        foreach (var milestone in milestones)
+        {
+            if (user.Constitution >= milestone && oldConstitution < milestone)
+            {
+                var title = GetStatMilestoneTitle("Constitution", milestone);
+                await _activityFeedService.CreateStatMilestoneActivityAsync(
+                    user.Id,
+                    user.PartyId,
+                    "Constitution",
+                    user.Constitution,
+                    title);
+                break;
+            }
+        }
+    }
+
+    private static string GetStatMilestoneTitle(string statName, int milestone)
+    {
+        return (statName, milestone) switch
+        {
+            ("Strength", 10) => "Budding Warrior",
+            ("Strength", 25) => "Strong Helper",
+            ("Strength", 50) => "Household Warrior",
+            ("Strength", 100) => "Physical Powerhouse",
+            ("Strength", 250) => "Legendary Hero",
+            ("Strength", 500) => "Titan of Chores",
+
+            ("Intelligence", 10) => "Quick Thinker",
+            ("Intelligence", 25) => "Smart Planner",
+            ("Intelligence", 50) => "Master Planner",
+            ("Intelligence", 100) => "Household Genius",
+            ("Intelligence", 250) => "Strategic Mastermind",
+            ("Intelligence", 500) => "Oracle of Organization",
+
+            ("Constitution", 10) => "Routine Builder",
+            ("Constitution", 25) => "Steady Performer",
+            ("Constitution", 50) => "Chore Marathoner",
+            ("Constitution", 100) => "Endurance Champion",
+            ("Constitution", 250) => "Unstoppable Force",
+            ("Constitution", 500) => "Immortal Maintainer",
+
+            _ => $"{statName} Master"
+        };
     }
 }

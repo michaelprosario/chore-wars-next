@@ -1,3 +1,4 @@
+using ChoreWars.Core.Commands;
 using ChoreWars.Core.Entities;
 using ChoreWars.Core.Interfaces;
 using ChoreWars.Infrastructure.Identity;
@@ -15,6 +16,7 @@ public class DMController : Controller
     private readonly IUserRepository _userRepository;
     private readonly IRepository<QuestCompletion> _questCompletionRepository;
     private readonly IRepository<Party> _partyRepository;
+    private readonly IQuestService _questService;
     private readonly UserManager<ApplicationUser> _userManager;
 
     public DMController(
@@ -22,12 +24,14 @@ public class DMController : Controller
         IUserRepository userRepository,
         IRepository<QuestCompletion> questCompletionRepository,
         IRepository<Party> partyRepository,
+        IQuestService questService,
         UserManager<ApplicationUser> userManager)
     {
         _questRepository = questRepository;
         _userRepository = userRepository;
         _questCompletionRepository = questCompletionRepository;
         _partyRepository = partyRepository;
+        _questService = questService;
         _userManager = userManager;
     }
 
@@ -226,26 +230,28 @@ public class DMController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> ApproveCompletion(Guid id)
     {
-        var completion = await _questCompletionRepository.GetByIdAsync(id);
-        if (completion == null)
-        {
-            return NotFound();
-        }
-
         var domainUser = await GetCurrentDomainUserAsync();
         if (domainUser == null)
         {
             return Forbid();
         }
 
-        completion.Status = CompletionStatus.Approved;
-        completion.VerifiedAt = DateTime.UtcNow;
-        completion.VerifiedByDMId = domainUser.Id;
+        var result = await _questService.VerifyQuestAsync(new VerifyQuestCommand
+        {
+            QuestCompletionId = id,
+            DMId = domainUser.Id,
+            IsApproved = true
+        });
 
-        await _questCompletionRepository.UpdateAsync(completion);
-        await _questCompletionRepository.SaveChangesAsync();
+        if (result.IsSuccess)
+        {
+            TempData["SuccessMessage"] = result.Message ?? "Quest completion approved!";
+        }
+        else
+        {
+            TempData["ErrorMessage"] = string.Join(", ", result.Errors);
+        }
 
-        TempData["SuccessMessage"] = "Quest completion approved!";
         return RedirectToAction(nameof(Verifications));
     }
 
@@ -253,26 +259,28 @@ public class DMController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> RejectCompletion(Guid id)
     {
-        var completion = await _questCompletionRepository.GetByIdAsync(id);
-        if (completion == null)
-        {
-            return NotFound();
-        }
-
         var domainUser = await GetCurrentDomainUserAsync();
         if (domainUser == null)
         {
             return Forbid();
         }
 
-        completion.Status = CompletionStatus.Rejected;
-        completion.VerifiedAt = DateTime.UtcNow;
-        completion.VerifiedByDMId = domainUser.Id;
+        var result = await _questService.VerifyQuestAsync(new VerifyQuestCommand
+        {
+            QuestCompletionId = id,
+            DMId = domainUser.Id,
+            IsApproved = false
+        });
 
-        await _questCompletionRepository.UpdateAsync(completion);
-        await _questCompletionRepository.SaveChangesAsync();
+        if (result.IsSuccess)
+        {
+            TempData["SuccessMessage"] = result.Message ?? "Quest completion rejected!";
+        }
+        else
+        {
+            TempData["ErrorMessage"] = string.Join(", ", result.Errors);
+        }
 
-        TempData["SuccessMessage"] = "Quest completion rejected!";
         return RedirectToAction(nameof(Verifications));
     }
 }

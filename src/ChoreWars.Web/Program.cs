@@ -39,10 +39,14 @@ builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IRewardRepository, RewardRepository>();
 builder.Services.AddScoped<IRepository<QuestCompletion>, Repository<QuestCompletion>>();
 builder.Services.AddScoped<IRepository<Party>, Repository<Party>>();
+builder.Services.AddScoped<IRepository<ActivityFeedItem>, Repository<ActivityFeedItem>>();
+builder.Services.AddScoped<IRepository<LootDrop>, Repository<LootDrop>>();
 
 // Service Registration
 builder.Services.AddScoped<IQuestService, QuestService>();
 builder.Services.AddScoped<IProgressionService, ProgressionService>();
+builder.Services.AddScoped<IActivityFeedService, ActivityFeedService>();
+builder.Services.AddScoped<ILootDropService, LootDropService>();
 
 var app = builder.Build();
 

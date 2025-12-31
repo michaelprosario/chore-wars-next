@@ -1,0 +1,184 @@
+@using ChoreWars.Core.Interfaces
+@{
+    ViewData["Title"] = "Quest Board";
+    var user = ViewBag.User as ChoreWars.Core.Entities.User;
+    var availableQuests = ViewBag.AvailableQuests as List<QuestDto> ?? new List<QuestDto>();
+    var activeQuests = ViewBag.ActiveQuests as List<QuestDto> ?? new List<QuestDto>();
+}
+
+<div class="container mt-4">
+    <h1 class="mb-4">⚔️ Quest Board</h1>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            @TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            @TempData["ErrorMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <!-- Player Stats Section -->
+    @if (user != null)
+    {
+        <div class="card mb-4" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+            <div class="card-body">
+                <h5 class="card-title">👤 @user.DisplayName - Level @user.CurrentLevel</h5>
+                <div class="progress mb-3" style="height: 30px;">
+                    <div class="progress-bar bg-warning" role="progressbar"
+                         style="width: @((double)user.CurrentXP / user.XPToNextLevel * 100)%"
+                         aria-valuenow="@user.CurrentXP" aria-valuemin="0" aria-valuemax="@user.XPToNextLevel">
+                        @user.CurrentXP / @user.XPToNextLevel XP
+                    </div>
+                </div>
+                <div class="row text-center">
+                    <div class="col">
+                        <strong>💰 Gold</strong><br />
+                        @user.TotalGold
+                    </div>
+                    <div class="col">
+                        <strong>💪 STR</strong><br />
+                        @user.Strength
+                    </div>
+                    <div class="col">
+                        <strong>🧠 INT</strong><br />
+                        @user.Intelligence
+                    </div>
+                    <div class="col">
+                        <strong>❤️ CON</strong><br />
+                        @user.Constitution
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
+    <!-- Active Quests Section -->
+    <div class="mb-5">
+        <h2 class="mb-3">📋 My Active Quests</h2>
+        @if (activeQuests.Count == 0)
+        {
+            <div class="alert alert-info">
+                You have no active quests. Claim a quest below to get started!
+            </div>
+        }
+        else
+        {
+            <div class="row">
+                @foreach (var quest in activeQuests)
+                {
+                    <div class="col-md-6 col-lg-4 mb-3">
+                        <div class="card h-100">
+                            <div class="card-header bg-primary text-white">
+                                <strong>@quest.Title</strong>
+                                <span class="badge bg-light text-dark float-end">@quest.Difficulty</span>
+                            </div>
+                            <div class="card-body">
+                                <p class="card-text">@quest.Description</p>
+                                <hr />
+                                <div class="row text-center">
+                                    <div class="col">
+                                        <small>XP</small><br />
+                                        <strong>@quest.XPReward</strong>
+                                    </div>
+                                    <div class="col">
+                                        <small>Gold</small><br />
+                                        <strong>💰 @quest.GoldReward</strong>
+                                    </div>
+                                </div>
+                                @if (quest.StrengthBonus > 0 || quest.IntelligenceBonus > 0 || quest.ConstitutionBonus > 0)
+                                {
+                                    <hr />
+                                    <div class="text-center">
+                                        <small>Stat Bonuses:</small><br />
+                                        @if (quest.StrengthBonus > 0) { <span class="badge bg-danger">💪 +@quest.StrengthBonus</span> }
+                                        @if (quest.IntelligenceBonus > 0) { <span class="badge bg-info">🧠 +@quest.IntelligenceBonus</span> }
+                                        @if (quest.ConstitutionBonus > 0) { <span class="badge bg-success">❤️ +@quest.ConstitutionBonus</span> }
+                                    </div>
+                                }
+                            </div>
+                            <div class="card-footer">
+                                <form asp-action="Complete" asp-route-questCompletionId="@quest.Id" method="post">
+                                    @Html.AntiForgeryToken()
+                                    <button type="submit" class="btn btn-success w-100">✓ Mark Complete</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+    </div>
+
+    <!-- Available Quests Section -->
+    <div class="mb-5">
+        <h2 class="mb-3">🎯 Available Quests</h2>
+        @if (availableQuests.Count == 0)
+        {
+            <div class="alert alert-warning">
+                No quests available at the moment. Check back later!
+            </div>
+        }
+        else
+        {
+            <div class="row">
+                @foreach (var quest in availableQuests)
+                {
+                    var difficultyClass = quest.Difficulty switch
+                    {
+                        "Easy" => "success",
+                        "Medium" => "warning",
+                        "Hard" => "danger",
+                        _ => "secondary"
+                    };
+
+                    <div class="col-md-6 col-lg-4 mb-3">
+                        <div class="card h-100">
+                            <div class="card-header bg-@difficultyClass text-white">
+                                <strong>@quest.Title</strong>
+                                <span class="badge bg-light text-dark float-end">@quest.QuestType</span>
+                            </div>
+                            <div class="card-body">
+                                <p class="card-text">@quest.Description</p>
+                                <hr />
+                                <div class="row text-center">
+                                    <div class="col">
+                                        <small>XP</small><br />
+                                        <strong>@quest.XPReward</strong>
+                                    </div>
+                                    <div class="col">
+                                        <small>Gold</small><br />
+                                        <strong>💰 @quest.GoldReward</strong>
+                                    </div>
+                                </div>
+                                @if (quest.StrengthBonus > 0 || quest.IntelligenceBonus > 0 || quest.ConstitutionBonus > 0)
+                                {
+                                    <hr />
+                                    <div class="text-center">
+                                        <small>Stat Bonuses:</small><br />
+                                        @if (quest.StrengthBonus > 0) { <span class="badge bg-danger">💪 +@quest.StrengthBonus</span> }
+                                        @if (quest.IntelligenceBonus > 0) { <span class="badge bg-info">🧠 +@quest.IntelligenceBonus</span> }
+                                        @if (quest.ConstitutionBonus > 0) { <span class="badge bg-success">❤️ +@quest.ConstitutionBonus</span> }
+                                    </div>
+                                }
+                            </div>
+                            <div class="card-footer">
+                                <form asp-action="Claim" asp-route-questId="@quest.Id" method="post">
+                                    @Html.AntiForgeryToken()
+                                    <button type="submit" class="btn btn-primary w-100">⚔️ Claim Quest</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+    </div>
+</div>

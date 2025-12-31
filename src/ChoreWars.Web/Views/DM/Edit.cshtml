@@ -1,0 +1,93 @@
+@model EditQuestViewModel
+@{
+    ViewData["Title"] = "Edit Quest";
+}
+
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <h2>@ViewData["Title"]</h2>
+        <hr />
+
+        <form asp-action="Edit" method="post">
+            <input type="hidden" asp-for="Id" />
+            <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+            <div class="mb-3">
+                <label asp-for="Title" class="form-label"></label>
+                <input asp-for="Title" class="form-control" />
+                <span asp-validation-for="Title" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Description" class="form-label"></label>
+                <textarea asp-for="Description" class="form-control" rows="3"></textarea>
+                <span asp-validation-for="Description" class="text-danger"></span>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label asp-for="QuestType" class="form-label"></label>
+                    <select asp-for="QuestType" class="form-select" asp-items="Html.GetEnumSelectList<ChoreWars.Core.Entities.QuestType>()"></select>
+                    <span asp-validation-for="QuestType" class="text-danger"></span>
+                </div>
+
+                <div class="col-md-6 mb-3">
+                    <label asp-for="Difficulty" class="form-label"></label>
+                    <select asp-for="Difficulty" class="form-select" asp-items="Html.GetEnumSelectList<ChoreWars.Core.Entities.DifficultyLevel>()"></select>
+                    <span asp-validation-for="Difficulty" class="text-danger"></span>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label asp-for="XPReward" class="form-label"></label>
+                    <input asp-for="XPReward" class="form-control" type="number" />
+                    <span asp-validation-for="XPReward" class="text-danger"></span>
+                </div>
+
+                <div class="col-md-6 mb-3">
+                    <label asp-for="GoldReward" class="form-label"></label>
+                    <input asp-for="GoldReward" class="form-control" type="number" />
+                    <span asp-validation-for="GoldReward" class="text-danger"></span>
+                </div>
+            </div>
+
+            <h4 class="mt-4">Stat Bonuses</h4>
+
+            <div class="row">
+                <div class="col-md-4 mb-3">
+                    <label asp-for="StrengthBonus" class="form-label">💪 Strength Bonus</label>
+                    <input asp-for="StrengthBonus" class="form-control" type="number" />
+                    <span asp-validation-for="StrengthBonus" class="text-danger"></span>
+                </div>
+
+                <div class="col-md-4 mb-3">
+                    <label asp-for="IntelligenceBonus" class="form-label">🧠 Intelligence Bonus</label>
+                    <input asp-for="IntelligenceBonus" class="form-control" type="number" />
+                    <span asp-validation-for="IntelligenceBonus" class="text-danger"></span>
+                </div>
+
+                <div class="col-md-4 mb-3">
+                    <label asp-for="ConstitutionBonus" class="form-label">❤️ Constitution Bonus</label>
+                    <input asp-for="ConstitutionBonus" class="form-control" type="number" />
+                    <span asp-validation-for="ConstitutionBonus" class="text-danger"></span>
+                </div>
+            </div>
+
+            <div class="mb-3 form-check">
+                <input asp-for="IsActive" class="form-check-input" />
+                <label asp-for="IsActive" class="form-check-label"></label>
+                <div class="form-text">Inactive quests won't appear to players</div>
+            </div>
+
+            <div class="d-grid gap-2 mt-4">
+                <button type="submit" class="btn btn-primary btn-lg">Save Changes</button>
+                <a asp-action="Index" class="btn btn-outline-secondary">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

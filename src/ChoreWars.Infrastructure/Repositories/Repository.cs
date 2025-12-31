@@ -21,9 +21,19 @@ public class Repository<T> : IRepository<T> where T : class
         return await _dbSet.FindAsync(id);
     }
 
+    public virtual async Task<T?> GetByConditionAsync(Expression<Func<T, bool>> predicate)
+    {
+        return await _dbSet.FirstOrDefaultAsync(predicate);
+    }
+
     public virtual async Task<IEnumerable<T>> GetAllAsync()
     {
         return await _dbSet.ToListAsync();
+    }
+
+    public virtual async Task<IEnumerable<T>> GetAllByConditionAsync(Expression<Func<T, bool>> predicate)
+    {
+        return await _dbSet.Where(predicate).ToListAsync();
     }
 
     public virtual async Task<IEnumerable<T>> FindAsync(Expression<Func<T, bool>> predicate)
@@ -47,6 +57,15 @@ public class Repository<T> : IRepository<T> where T : class
     {
         _dbSet.Remove(entity);
         return Task.CompletedTask;
+    }
+
+    public virtual async Task DeleteAsync(Guid id)
+    {
+        var entity = await GetByIdAsync(id);
+        if (entity != null)
+        {
+            _dbSet.Remove(entity);
+        }
     }
 
     public virtual async Task<int> SaveChangesAsync()

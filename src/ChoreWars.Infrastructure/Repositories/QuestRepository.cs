@@ -11,6 +11,14 @@ public class QuestRepository : Repository<Quest>, IQuestRepository
     {
     }
 
+    public async Task<IEnumerable<Quest>> GetByPartyIdAsync(Guid partyId)
+    {
+        return await _dbSet
+            .Where(q => q.PartyId == partyId)
+            .OrderByDescending(q => q.CreatedAt)
+            .ToListAsync();
+    }
+
     public async Task<IEnumerable<Quest>> GetActiveQuestsByPartyIdAsync(Guid partyId)
     {
         return await _dbSet

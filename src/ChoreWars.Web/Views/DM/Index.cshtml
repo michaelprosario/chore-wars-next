@@ -1,0 +1,153 @@
+@model IEnumerable<ChoreWars.Core.Entities.Quest>
+@{
+    ViewData["Title"] = "DM Dashboard - Quest Management";
+}
+
+<div class="row mb-4">
+    <div class="col">
+        <h2>Dungeon Master Dashboard</h2>
+        <p class="lead">Manage quests for @ViewBag.PartyName</p>
+        <div class="alert alert-info">
+            <strong>Party Invite Code:</strong> <code>@ViewBag.InviteCode</code>
+            <br />
+            <small>Share this code with family members so they can join your party!</small>
+        </div>
+    </div>
+</div>
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        @TempData["SuccessMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+<div class="row mb-3">
+    <div class="col">
+        <a asp-action="Create" class="btn btn-primary">
+            <i class="bi bi-plus-circle"></i> Create New Quest
+        </a>
+        <a asp-action="Verifications" class="btn btn-warning">
+            <i class="bi bi-check-circle"></i> Pending Verifications
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col">
+        @if (Model.Any())
+        {
+            <div class="table-responsive">
+                <table class="table table-striped table-hover">
+                    <thead>
+                        <tr>
+                            <th>Title</th>
+                            <th>Type</th>
+                            <th>Difficulty</th>
+                            <th>XP</th>
+                            <th>Gold</th>
+                            <th>Stats</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var quest in Model)
+                        {
+                            <tr>
+                                <td>
+                                    <strong>@quest.Title</strong>
+                                    <br />
+                                    <small class="text-muted">@quest.Description</small>
+                                </td>
+                                <td>
+                                    @if (quest.QuestType == ChoreWars.Core.Entities.QuestType.Daily)
+                                    {
+                                        <span class="badge bg-info">Daily</span>
+                                    }
+                                    else if (quest.QuestType == ChoreWars.Core.Entities.QuestType.Weekly)
+                                    {
+                                        <span class="badge bg-primary">Weekly</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-secondary">One-Time</span>
+                                    }
+                                </td>
+                                <td>
+                                    @if (quest.Difficulty == ChoreWars.Core.Entities.DifficultyLevel.Easy)
+                                    {
+                                        <span class="badge bg-success">Easy</span>
+                                    }
+                                    else if (quest.Difficulty == ChoreWars.Core.Entities.DifficultyLevel.Medium)
+                                    {
+                                        <span class="badge bg-warning">Medium</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-danger">Hard</span>
+                                    }
+                                </td>
+                                <td>@quest.XPReward XP</td>
+                                <td>@quest.GoldReward G</td>
+                                <td>
+                                    <small>
+                                        @if (quest.StrengthBonus > 0) { <span>💪+@quest.StrengthBonus</span> }
+                                        @if (quest.IntelligenceBonus > 0) { <span>🧠+@quest.IntelligenceBonus</span> }
+                                        @if (quest.ConstitutionBonus > 0) { <span>❤️+@quest.ConstitutionBonus</span> }
+                                    </small>
+                                </td>
+                                <td>
+                                    @if (quest.IsActive)
+                                    {
+                                        <span class="badge bg-success">Active</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-secondary">Inactive</span>
+                                    }
+                                </td>
+                                <td>
+                                    <div class="btn-group btn-group-sm" role="group">
+                                        <a asp-action="Edit" asp-route-id="@quest.Id" class="btn btn-outline-primary">Edit</a>
+                                        <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteModal-@quest.Id">Delete</button>
+                                    </div>
+
+                                    <!-- Delete Confirmation Modal -->
+                                    <div class="modal fade" id="deleteModal-@quest.Id" tabindex="-1" aria-labelledby="deleteModalLabel-@quest.Id" aria-hidden="true">
+                                        <div class="modal-dialog">
+                                            <div class="modal-content">
+                                                <div class="modal-header">
+                                                    <h5 class="modal-title" id="deleteModalLabel-@quest.Id">Confirm Delete</h5>
+                                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                </div>
+                                                <div class="modal-body">
+                                                    Are you sure you want to delete the quest "<strong>@quest.Title</strong>"?
+                                                </div>
+                                                <div class="modal-footer">
+                                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                                    <form asp-action="Delete" asp-route-id="@quest.Id" method="post" class="d-inline">
+                                                        @Html.AntiForgeryToken()
+                                                        <button type="submit" class="btn btn-danger">Delete</button>
+                                                    </form>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+        else
+        {
+            <div class="alert alert-info">
+                <h5>No quests yet!</h5>
+                <p>Create your first quest to get started with Chore Wars.</p>
+            </div>
+        }
+    </div>
+</div>

@@ -1,0 +1,119 @@
+@model IEnumerable<ChoreWars.Core.Entities.QuestCompletion>
+@{
+    ViewData["Title"] = "Pending Verifications";
+}
+
+<div class="row mb-4">
+    <div class="col">
+        <h2>@ViewData["Title"]</h2>
+        <p class="lead">Review and approve quest completions</p>
+    </div>
+</div>
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        @TempData["SuccessMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+<div class="row mb-3">
+    <div class="col">
+        <a asp-action="Index" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> Back to Dashboard
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col">
+        @if (Model.Any())
+        {
+            <div class="list-group">
+                @foreach (var completion in Model)
+                {
+                    <div class="list-group-item">
+                        <div class="row align-items-center">
+                            <div class="col-md-8">
+                                <h5 class="mb-1">@completion.Quest?.Title</h5>
+                                <p class="mb-1 text-muted">@completion.Quest?.Description</p>
+                                <small class="text-muted">
+                                    Completed by: <strong>@completion.User?.Username</strong> (@completion.User?.DisplayName)
+                                    <br />
+                                    Claimed: @completion.ClaimedAt.ToString("g")
+                                    @if (completion.CompletedAt.HasValue)
+                                    {
+                                        <br />
+                                        <text>Completed: @completion.CompletedAt.Value.ToString("g")</text>
+                                    }
+                                </small>
+                                <br />
+                                <div class="mt-2">
+                                    <span class="badge bg-primary">@completion.XPEarned XP</span>
+                                    <span class="badge bg-warning">@completion.GoldEarned Gold</span>
+                                    @if (completion.StrengthGained > 0)
+                                    {
+                                        <span class="badge bg-info">💪 +@completion.StrengthGained</span>
+                                    }
+                                    @if (completion.IntelligenceGained > 0)
+                                    {
+                                        <span class="badge bg-info">🧠 +@completion.IntelligenceGained</span>
+                                    }
+                                    @if (completion.ConstitutionGained > 0)
+                                    {
+                                        <span class="badge bg-info">❤️ +@completion.ConstitutionGained</span>
+                                    }
+                                </div>
+                            </div>
+                            <div class="col-md-4 text-end">
+                                <form asp-action="ApproveCompletion" asp-route-id="@completion.Id" method="post" class="d-inline">
+                                    @Html.AntiForgeryToken()
+                                    <button type="submit" class="btn btn-success">
+                                        <i class="bi bi-check-circle"></i> Approve
+                                    </button>
+                                </form>
+                                <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#rejectModal-@completion.Id">
+                                    <i class="bi bi-x-circle"></i> Reject
+                                </button>
+
+                                <!-- Reject Confirmation Modal -->
+                                <div class="modal fade" id="rejectModal-@completion.Id" tabindex="-1" aria-labelledby="rejectModalLabel-@completion.Id" aria-hidden="true">
+                                    <div class="modal-dialog">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <h5 class="modal-title" id="rejectModalLabel-@completion.Id">Confirm Rejection</h5>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                            </div>
+                                            <div class="modal-body">
+                                                Are you sure you want to reject this quest completion?
+                                                <br /><br />
+                                                <strong>Quest:</strong> @completion.Quest?.Title
+                                                <br />
+                                                <strong>Player:</strong> @completion.User?.DisplayName
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                                <form asp-action="RejectCompletion" asp-route-id="@completion.Id" method="post" class="d-inline">
+                                                    @Html.AntiForgeryToken()
+                                                    <button type="submit" class="btn btn-danger">Reject</button>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+        else
+        {
+            <div class="alert alert-info">
+                <h5>No pending verifications!</h5>
+                <p>All quest completions have been reviewed.</p>
+            </div>
+        }
+    </div>
+</div>

@@ -1,16 +1,18 @@
 using ChoreWars.Core.Entities;
+using ChoreWars.Infrastructure.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
 namespace ChoreWars.Infrastructure.Data;
 
-public class ApplicationDbContext : DbContext
+public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
 {
     public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
         : base(options)
     {
     }
 
-    public DbSet<User> Users => Set<User>();
+    public new DbSet<User> Users => Set<User>();
     public DbSet<Party> Parties => Set<Party>();
     public DbSet<Quest> Quests => Set<Quest>();
     public DbSet<QuestCompletion> QuestCompletions => Set<QuestCompletion>();

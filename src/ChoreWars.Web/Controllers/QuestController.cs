@@ -133,4 +133,35 @@ public class QuestController : Controller
 
         return RedirectToAction(nameof(Index));
     }
+
+    /// <summary>
+    /// Unclaim a quest (remove claim, quest returns to available)
+    /// </summary>
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Unclaim(Guid questCompletionId)
+    {
+        var domainUser = await GetCurrentDomainUserAsync();
+        if (domainUser == null)
+        {
+            return RedirectToAction("Login", "Account");
+        }
+
+        var result = await _questService.UnclaimQuestAsync(new UnclaimQuestCommand
+        {
+            QuestCompletionId = questCompletionId,
+            UserId = domainUser.Id
+        });
+
+        if (result.IsSuccess)
+        {
+            TempData["SuccessMessage"] = result.Message ?? "Quest unclaimed successfully!";
+        }
+        else
+        {
+            TempData["ErrorMessage"] = string.Join(", ", result.Errors);
+        }
+
+        return RedirectToAction(nameof(Index));
+    }
 }

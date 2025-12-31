@@ -9,6 +9,7 @@ public interface IQuestService
     Task<AppResult<QuestCompletionDto>> ClaimQuestAsync(ClaimQuestCommand command);
     Task<AppResult<QuestCompletionDto>> CompleteQuestAsync(CompleteQuestCommand command);
     Task<AppResult<QuestCompletionDto>> VerifyQuestAsync(VerifyQuestCommand command);
+    Task<AppResult<QuestCompletionDto>> UnclaimQuestAsync(UnclaimQuestCommand command);
     Task<AppResult<List<QuestDto>>> GetAvailableQuestsAsync(GetAvailableQuestsQuery query);
     Task<AppResult<List<QuestDto>>> GetMyActiveQuestsAsync(GetMyActiveQuestsQuery query);
 }
@@ -28,6 +29,8 @@ public class QuestDto
     public int ConstitutionBonus { get; set; }
     public bool IsClaimed { get; set; }
     public string? ClaimedByUsername { get; set; }
+    public Guid? CompletionId { get; set; }
+    public string? CompletionStatus { get; set; }
 }
 
 public class QuestCompletionDto

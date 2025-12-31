@@ -7,3 +7,8 @@
 - Talk about how you get started
 
 ===
+
+As quest player, I should have a way to unclaim a quest from "my active" quests or the "view quest" screen.
+
+
+===

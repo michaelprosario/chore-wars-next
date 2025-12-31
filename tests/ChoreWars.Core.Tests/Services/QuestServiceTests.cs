@@ -338,4 +338,161 @@ public class QuestServiceTests
         await _progressionService.DidNotReceive().AwardXPAsync(Arg.Any<AwardXPCommand>());
         await _progressionService.DidNotReceive().AwardGoldAsync(Arg.Any<AwardGoldCommand>());
     }
+
+    [Test]
+    public async Task UnclaimQuestAsync_ValidClaim_UnclainsSuccessfully()
+    {
+        // Arrange
+        var completion = new QuestCompletion
+        {
+            Id = Guid.NewGuid(),
+            QuestId = _testQuest.Id,
+            UserId = _testUser.Id,
+            Status = CompletionStatus.Claimed,
+            XPEarned = 50,
+            GoldEarned = 25,
+            StrengthGained = 2
+        };
+        var command = new UnclaimQuestCommand
+        {
+            QuestCompletionId = completion.Id,
+            UserId = _testUser.Id
+        };
+        _completionRepository.GetByIdAsync(completion.Id).Returns(completion);
+        _questRepository.GetByIdAsync(_testQuest.Id).Returns(_testQuest);
+        _userRepository.GetByIdAsync(_testUser.Id).Returns(_testUser);
+
+        // Act
+        var result = await _service.UnclaimQuestAsync(command);
+
+        // Assert
+        Assert.That(result.IsSuccess, Is.True);
+        Assert.That(result.Data, Is.Not.Null);
+        await _completionRepository.Received(1).DeleteAsync(completion);
+        await _completionRepository.Received(1).SaveChangesAsync();
+    }
+
+    [Test]
+    public async Task UnclaimQuestAsync_CompletionNotFound_ReturnsFailure()
+    {
+        // Arrange
+        var command = new UnclaimQuestCommand
+        {
+            QuestCompletionId = Guid.NewGuid(),
+            UserId = _testUser.Id
+        };
+        _completionRepository.GetByIdAsync(command.QuestCompletionId).Returns((QuestCompletion?)null);
+
+        // Act
+        var result = await _service.UnclaimQuestAsync(command);
+
+        // Assert
+        Assert.That(result.IsSuccess, Is.False);
+        Assert.That(result.Errors, Contains.Item("Quest completion not found"));
+    }
+
+    [Test]
+    public async Task UnclaimQuestAsync_NotOwner_ReturnsFailure()
+    {
+        // Arrange
+        var otherUserId = Guid.NewGuid();
+        var completion = new QuestCompletion
+        {
+            Id = Guid.NewGuid(),
+            QuestId = _testQuest.Id,
+            UserId = otherUserId,
+            Status = CompletionStatus.Claimed
+        };
+        var command = new UnclaimQuestCommand
+        {
+            QuestCompletionId = completion.Id,
+            UserId = _testUser.Id
+        };
+        _completionRepository.GetByIdAsync(completion.Id).Returns(completion);
+
+        // Act
+        var result = await _service.UnclaimQuestAsync(command);
+
+        // Assert
+        Assert.That(result.IsSuccess, Is.False);
+        Assert.That(result.Errors, Contains.Item("User is not the owner of this quest completion"));
+    }
+
+    [Test]
+    public async Task UnclaimQuestAsync_PendingVerificationStatus_ReturnsFailure()
+    {
+        // Arrange
+        var completion = new QuestCompletion
+        {
+            Id = Guid.NewGuid(),
+            QuestId = _testQuest.Id,
+            UserId = _testUser.Id,
+            Status = CompletionStatus.PendingVerification
+        };
+        var command = new UnclaimQuestCommand
+        {
+            QuestCompletionId = completion.Id,
+            UserId = _testUser.Id
+        };
+        _completionRepository.GetByIdAsync(completion.Id).Returns(completion);
+
+        // Act
+        var result = await _service.UnclaimQuestAsync(command);
+
+        // Assert
+        Assert.That(result.IsSuccess, Is.False);
+        Assert.That(result.Errors, Contains.Item("Only quests with 'Claimed' status can be unclaimed"));
+    }
+
+    [Test]
+    public async Task UnclaimQuestAsync_ApprovedStatus_ReturnsFailure()
+    {
+        // Arrange
+        var completion = new QuestCompletion
+        {
+            Id = Guid.NewGuid(),
+            QuestId = _testQuest.Id,
+            UserId = _testUser.Id,
+            Status = CompletionStatus.Approved
+        };
+        var command = new UnclaimQuestCommand
+        {
+            QuestCompletionId = completion.Id,
+            UserId = _testUser.Id
+        };
+        _completionRepository.GetByIdAsync(completion.Id).Returns(completion);
+
+        // Act
+        var result = await _service.UnclaimQuestAsync(command);
+
+        // Assert
+        Assert.That(result.IsSuccess, Is.False);
+        Assert.That(result.Errors, Contains.Item("Only quests with 'Claimed' status can be unclaimed"));
+    }
+
+    [Test]
+    public async Task UnclaimQuestAsync_RejectedStatus_ReturnsFailure()
+    {
+        // Arrange
+        var completion = new QuestCompletion
+        {
+            Id = Guid.NewGuid(),
+            QuestId = _testQuest.Id,
+            UserId = _testUser.Id,
+            Status = CompletionStatus.Rejected
+        };
+        var command = new UnclaimQuestCommand
+        {
+            QuestCompletionId = completion.Id,
+            UserId = _testUser.Id
+        };
+        _completionRepository.GetByIdAsync(completion.Id).Returns(completion);
+
+        // Act
+        var result = await _service.UnclaimQuestAsync(command);
+
+        // Assert
+        Assert.That(result.IsSuccess, Is.False);
+        Assert.That(result.Errors, Contains.Item("Only quests with 'Claimed' status can be unclaimed"));
+    }
 }

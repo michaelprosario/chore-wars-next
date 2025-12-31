@@ -18,3 +18,9 @@ public class VerifyQuestCommand
     public required Guid DMId { get; set; }
     public required bool IsApproved { get; set; }
 }
+
+public class UnclaimQuestCommand
+{
+    public required Guid QuestCompletionId { get; set; }
+    public required Guid UserId { get; set; }
+}

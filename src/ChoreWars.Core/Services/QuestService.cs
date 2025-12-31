@@ -152,6 +152,55 @@ public class QuestService : IQuestService
         return AppResult<QuestCompletionDto>.Success(dto, "Quest marked as complete, awaiting DM verification");
     }
 
+    public async Task<AppResult<QuestCompletionDto>> UnclaimQuestAsync(UnclaimQuestCommand command)
+    {
+        // 1. Validate completion exists
+        var completion = await _completionRepository.GetByIdAsync(command.QuestCompletionId);
+        if (completion == null)
+        {
+            return AppResult<QuestCompletionDto>.Failure("Quest completion not found");
+        }
+
+        // 2. Validate ownership
+        if (completion.UserId != command.UserId)
+        {
+            return AppResult<QuestCompletionDto>.Failure("User is not the owner of this quest completion");
+        }
+
+        // 3. Validate status (only Claimed can be unclaimed)
+        if (completion.Status != CompletionStatus.Claimed)
+        {
+            return AppResult<QuestCompletionDto>.Failure("Only quests with 'Claimed' status can be unclaimed");
+        }
+
+        // 4. Get related data for DTO before deletion
+        var quest = await _questRepository.GetByIdAsync(completion.QuestId);
+        var user = await _userRepository.GetByIdAsync(completion.UserId);
+
+        // 5. Create DTO
+        var dto = new QuestCompletionDto
+        {
+            Id = completion.Id,
+            QuestId = completion.QuestId,
+            QuestTitle = quest?.Title ?? "",
+            UserId = completion.UserId,
+            Username = user?.Username ?? "",
+            Status = "Unclaimed",
+            XPEarned = completion.XPEarned,
+            GoldEarned = completion.GoldEarned,
+            StrengthGained = completion.StrengthGained,
+            IntelligenceGained = completion.IntelligenceGained,
+            ConstitutionGained = completion.ConstitutionGained,
+            ClaimedAt = completion.ClaimedAt
+        };
+
+        // 6. Delete the record
+        await _completionRepository.DeleteAsync(completion);
+        await _completionRepository.SaveChangesAsync();
+
+        return AppResult<QuestCompletionDto>.Success(dto, "Quest unclaimed successfully");
+    }
+
     public async Task<AppResult<QuestCompletionDto>> VerifyQuestAsync(VerifyQuestCommand command)
     {
         var completion = await _completionRepository.GetByIdAsync(command.QuestCompletionId);
@@ -349,7 +398,9 @@ public class QuestService : IQuestService
                     StrengthBonus = quest.StrengthBonus,
                     IntelligenceBonus = quest.IntelligenceBonus,
                     ConstitutionBonus = quest.ConstitutionBonus,
-                    IsClaimed = true
+                    IsClaimed = true,
+                    CompletionId = completion.Id,
+                    CompletionStatus = completion.Status.ToString()
                 });
             }
         }

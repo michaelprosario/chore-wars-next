@@ -105,10 +105,52 @@
                                 }
                             </div>
                             <div class="card-footer">
-                                <form asp-action="Complete" asp-route-questCompletionId="@quest.Id" method="post">
-                                    @Html.AntiForgeryToken()
-                                    <button type="submit" class="btn btn-success w-100">✓ Mark Complete</button>
-                                </form>
+                                @if (quest.CompletionStatus == "Claimed")
+                                {
+                                    <div class="d-grid gap-2">
+                                        <form asp-action="Complete" asp-route-questCompletionId="@quest.CompletionId" method="post">
+                                            @Html.AntiForgeryToken()
+                                            <button type="submit" class="btn btn-success w-100">✓ Mark Complete</button>
+                                        </form>
+                                        <button type="button" class="btn btn-outline-danger w-100"
+                                                data-bs-toggle="modal"
+                                                data-bs-target="#unclaimModal-@quest.CompletionId">
+                                            ✗ Unclaim Quest
+                                        </button>
+                                    </div>
+                                }
+                                else if (quest.CompletionStatus == "PendingVerification")
+                                {
+                                    <div class="alert alert-info mb-0">
+                                        ⏳ Awaiting DM Verification
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Unclaim Confirmation Modal -->
+                    <div class="modal fade" id="unclaimModal-@quest.CompletionId" tabindex="-1"
+                         aria-labelledby="unclaimModalLabel-@quest.CompletionId" aria-hidden="true">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="unclaimModalLabel-@quest.CompletionId">Unclaim Quest?</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body">
+                                    Are you sure you want to unclaim "<strong>@quest.Title</strong>"?
+                                    <br /><br />
+                                    This will return the quest to the available quests pool and allow others to claim it.
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                    <form asp-action="Unclaim" asp-route-questCompletionId="@quest.CompletionId"
+                                          method="post" class="d-inline">
+                                        @Html.AntiForgeryToken()
+                                        <button type="submit" class="btn btn-danger">Unclaim</button>
+                                    </form>
+                                </div>
                             </div>
                         </div>
                     </div>

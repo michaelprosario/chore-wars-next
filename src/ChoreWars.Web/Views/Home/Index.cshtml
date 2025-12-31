@@ -1,8 +1,89 @@
 ﻿@{
-    ViewData["Title"] = "Home Page";
+    ViewData["Title"] = "ChoreWars - Turn Chores Into Epic Adventures";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+<div class="container">
+    <div class="text-center py-5">
+        <h1 class="display-3 fw-bold mb-3">⚔️ ChoreWars ⚔️</h1>
+        <p class="lead text-muted mb-5">Transform Your Household Chores Into Epic Quests!</p>
+    </div>
+
+    <div class="row mb-5">
+        <div class="col-lg-8 mx-auto">
+            <div class="card shadow-sm">
+                <div class="card-body p-5">
+                    <h2 class="h3 mb-4">🎯 What is ChoreWars?</h2>
+                    <p class="mb-4">
+                        ChoreWars transforms mundane household chores into an epic RPG adventure!
+                        Claim quests, defeat your to-do list, earn XP and gold, develop your character's stats,
+                        discover legendary loot, and compete with your party—all while maintaining a clean and organized home!
+                    </p>
+
+                    <h2 class="h3 mb-4 mt-5">✨ Why It's Fun</h2>
+                    <ul class="list-unstyled mb-4">
+                        <li class="mb-3">⚡ <strong>Level Up & Earn Gold:</strong> Gain XP with every completed quest and level up your character</li>
+                        <li class="mb-3">💪 <strong>RPG Stats System:</strong> Build your Strength, Intelligence, and Constitution through different types of chores</li>
+                        <li class="mb-3">🎁 <strong>Random Loot Drops:</strong> 20% chance to find hilarious virtual items like "Crusty Sponge" or "Sword of Dish Slaying"</li>
+                        <li class="mb-3">🏆 <strong>Stat Milestones:</strong> Unlock achievement titles like "Household Warrior" and "Master Planner"</li>
+                        <li class="mb-3">👥 <strong>Party System:</strong> Join forces with family or roommates in a shared household adventure</li>
+                        <li class="mb-3">📜 <strong>Activity Feed:</strong> See party members' victories and achievements in real-time</li>
+                        <li class="mb-3">🎮 <strong>Fair Play:</strong> Dungeon Master verification ensures everyone actually completes their quests</li>
+                    </ul>
+
+                    <h2 class="h3 mb-4 mt-5">🚀 How to Get Started</h2>
+                    <div class="ps-3">
+                        <ol class="mb-4">
+                            <li class="mb-3"><strong>Create Your Account:</strong> Register and join your household's party</li>
+                            <li class="mb-3"><strong>Dungeon Master Creates Quests:</strong> One player becomes the DM and sets up daily, weekly, and one-time chores with XP, gold, and stat rewards</li>
+                            <li class="mb-3"><strong>Claim Your Quest:</strong> Browse the Quest Board and claim a quest to prevent others from taking it</li>
+                            <li class="mb-3"><strong>Complete the Task:</strong> Do the chore in real life, then mark it as complete for DM verification</li>
+                            <li class="mb-3"><strong>Get Verified & Earn Rewards:</strong> DM approves your completion, and you instantly receive XP, gold, stat bonuses, and maybe even legendary loot!</li>
+                            <li class="mb-3"><strong>Level Up & Compete:</strong> Watch your character grow, unlock milestone titles, and climb the party leaderboard!</li>
+                        </ol>
+                    </div>
+
+                    <div class="text-center mt-5">
+                        @if (User.Identity?.IsAuthenticated == true)
+                        {
+                            <a href="@Url.Action("Index", "Quest")" class="btn btn-primary btn-lg px-5 py-3">
+                                🗡️ Go to Quest Board
+                            </a>
+                        }
+                        else
+                        {
+                            <a href="@Url.Action("Register", "Account")" class="btn btn-primary btn-lg px-5 py-3 me-3">
+                                ⚔️ Start Your Adventure
+                            </a>
+                            <a href="@Url.Action("Login", "Account")" class="btn btn-outline-secondary btn-lg px-5 py-3">
+                                🔑 Login
+                            </a>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row text-center py-5 bg-light rounded">
+        <div class="col-md-3 mb-4 mb-md-0">
+            <div class="display-4 mb-3">💪</div>
+            <h3 class="h5 text-danger">Strength</h3>
+            <p class="text-muted small">Physical chores: groceries, cleaning, yard work</p>
+        </div>
+        <div class="col-md-3 mb-4 mb-md-0">
+            <div class="display-4 mb-3">🧠</div>
+            <h3 class="h5 text-info">Intelligence</h3>
+            <p class="text-muted small">Mental tasks: bills, planning, organizing</p>
+        </div>
+        <div class="col-md-3 mb-4 mb-md-0">
+            <div class="display-4 mb-3">❤️</div>
+            <h3 class="h5 text-success">Constitution</h3>
+            <p class="text-muted small">Routine chores: cooking, laundry, daily tasks</p>
+        </div>
+        <div class="col-md-3">
+            <div class="display-4 mb-3">🎁</div>
+            <h3 class="h5 text-warning">Epic Loot</h3>
+            <p class="text-muted small">Random drops: Common, Uncommon, Rare items</p>
+        </div>
+    </div>
 </div>

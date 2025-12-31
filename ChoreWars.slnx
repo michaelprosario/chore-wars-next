@@ -1,0 +1,10 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/ChoreWars.Core/ChoreWars.Core.csproj" />
+    <Project Path="src/ChoreWars.Infrastructure/ChoreWars.Infrastructure.csproj" />
+    <Project Path="src/ChoreWars.Web/ChoreWars.Web.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/ChoreWars.Core.Tests/ChoreWars.Core.Tests.csproj" />
+  </Folder>
+</Solution>

@@ -12,6 +12,7 @@ public interface IQuestService
     Task<AppResult<QuestCompletionDto>> UnclaimQuestAsync(UnclaimQuestCommand command);
     Task<AppResult<List<QuestDto>>> GetAvailableQuestsAsync(GetAvailableQuestsQuery query);
     Task<AppResult<List<QuestDto>>> GetMyActiveQuestsAsync(GetMyActiveQuestsQuery query);
+    Task<AppResult<List<QuestDto>>> ImportQuestsAsync(ImportQuestsCommand command);
 }
 
 // DTOs

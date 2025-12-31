@@ -408,6 +408,163 @@ public class QuestService : IQuestService
         return AppResult<List<QuestDto>>.Success(questDtos);
     }
 
+    public async Task<AppResult<List<QuestDto>>> ImportQuestsAsync(ImportQuestsCommand command)
+    {
+        // Validate DM exists and belongs to the party
+        var dm = await _userRepository.GetByIdAsync(command.DMId);
+        if (dm == null)
+        {
+            return AppResult<List<QuestDto>>.Failure("DM not found");
+        }
+
+        if (dm.PartyId != command.PartyId)
+        {
+            return AppResult<List<QuestDto>>.Failure("DM does not belong to this party");
+        }
+
+        // Validate quest data
+        var validationErrors = new List<ValidationError>();
+        var validQuests = new List<Quest>();
+
+        for (int i = 0; i < command.Quests.Count; i++)
+        {
+            var questDto = command.Quests[i];
+            var questErrors = new List<string>();
+
+            // Validate Title
+            if (string.IsNullOrWhiteSpace(questDto.Title))
+            {
+                questErrors.Add("Title is required");
+            }
+            else if (questDto.Title.Length > 200)
+            {
+                questErrors.Add("Title must be 200 characters or less");
+            }
+
+            // Validate Description
+            if (string.IsNullOrWhiteSpace(questDto.Description))
+            {
+                questErrors.Add("Description is required");
+            }
+            else if (questDto.Description.Length > 1000)
+            {
+                questErrors.Add("Description must be 1000 characters or less");
+            }
+
+            // Validate XPReward
+            if (questDto.XPReward < 1 || questDto.XPReward > 1000)
+            {
+                questErrors.Add("XP Reward must be between 1 and 1000");
+            }
+
+            // Validate GoldReward
+            if (questDto.GoldReward < 0 || questDto.GoldReward > 1000)
+            {
+                questErrors.Add("Gold Reward must be between 0 and 1000");
+            }
+
+            // Validate and parse Difficulty
+            if (!Enum.TryParse<DifficultyLevel>(questDto.Difficulty, true, out var difficulty))
+            {
+                questErrors.Add($"Difficulty '{questDto.Difficulty}' is invalid. Valid values: Easy, Medium, Hard");
+            }
+
+            // Validate and parse QuestType (default to OneTime if not specified)
+            QuestType questType = QuestType.OneTime;
+            if (!string.IsNullOrWhiteSpace(questDto.QuestType))
+            {
+                if (!Enum.TryParse<QuestType>(questDto.QuestType, true, out questType))
+                {
+                    questErrors.Add($"Quest Type '{questDto.QuestType}' is invalid. Valid values: OneTime, Daily, Weekly");
+                }
+            }
+
+            // Validate stat bonuses
+            if (questDto.StrengthBonus < 0 || questDto.StrengthBonus > 10)
+            {
+                questErrors.Add("Strength Bonus must be between 0 and 10");
+            }
+
+            if (questDto.IntelligenceBonus < 0 || questDto.IntelligenceBonus > 10)
+            {
+                questErrors.Add("Intelligence Bonus must be between 0 and 10");
+            }
+
+            if (questDto.ConstitutionBonus < 0 || questDto.ConstitutionBonus > 10)
+            {
+                questErrors.Add("Constitution Bonus must be between 0 and 10");
+            }
+
+            // If there are errors, add them to validation errors
+            if (questErrors.Any())
+            {
+                var questIdentifier = !string.IsNullOrWhiteSpace(questDto.Title)
+                    ? $"'{questDto.Title}'"
+                    : $"#{i + 1}";
+
+                validationErrors.Add(new ValidationError
+                {
+                    Field = $"Quest {questIdentifier}",
+                    Message = string.Join("; ", questErrors)
+                });
+            }
+            else
+            {
+                // Create valid quest entity
+                var quest = new Quest
+                {
+                    Id = Guid.NewGuid(),
+                    Title = questDto.Title.Trim(),
+                    Description = questDto.Description.Trim(),
+                    XPReward = questDto.XPReward,
+                    GoldReward = questDto.GoldReward,
+                    Difficulty = difficulty,
+                    QuestType = questType,
+                    StrengthBonus = questDto.StrengthBonus,
+                    IntelligenceBonus = questDto.IntelligenceBonus,
+                    ConstitutionBonus = questDto.ConstitutionBonus,
+                    PartyId = command.PartyId,
+                    CreatedByDMId = command.DMId,
+                    IsActive = true,
+                    CreatedAt = DateTime.UtcNow
+                };
+
+                validQuests.Add(quest);
+            }
+        }
+
+        // If there are any validation errors, return them (all-or-nothing approach)
+        if (validationErrors.Any())
+        {
+            return AppResult<List<QuestDto>>.ValidationFailure(validationErrors);
+        }
+
+        // Import all valid quests
+        foreach (var quest in validQuests)
+        {
+            await _questRepository.AddAsync(quest);
+        }
+        await _questRepository.SaveChangesAsync();
+
+        // Convert to DTOs for return
+        var questDtos = validQuests.Select(q => new QuestDto
+        {
+            Id = q.Id,
+            Title = q.Title,
+            Description = q.Description,
+            XPReward = q.XPReward,
+            GoldReward = q.GoldReward,
+            Difficulty = q.Difficulty.ToString(),
+            QuestType = q.QuestType.ToString(),
+            StrengthBonus = q.StrengthBonus,
+            IntelligenceBonus = q.IntelligenceBonus,
+            ConstitutionBonus = q.ConstitutionBonus,
+            IsClaimed = false
+        }).ToList();
+
+        return AppResult<List<QuestDto>>.Success(questDtos, $"Successfully imported {questDtos.Count} quest(s)");
+    }
+
     private async Task CheckAndCreateStatMilestones(User user, int oldStrength, int oldIntelligence, int oldConstitution)
     {
         var milestones = new[] { 10, 25, 50, 100, 250, 500 };

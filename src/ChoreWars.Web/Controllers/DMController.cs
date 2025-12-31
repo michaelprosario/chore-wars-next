@@ -6,6 +6,7 @@ using ChoreWars.Web.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using System.Text.Json;
 
 namespace ChoreWars.Web.Controllers;
 
@@ -282,5 +283,157 @@ public class DMController : Controller
         }
 
         return RedirectToAction(nameof(Verifications));
+    }
+
+    [HttpGet]
+    public IActionResult Import()
+    {
+        return View();
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Import(IFormFile? jsonFile)
+    {
+        if (jsonFile == null || jsonFile.Length == 0)
+        {
+            ModelState.AddModelError("", "Please select a JSON file to import");
+            return View();
+        }
+
+        // Validate file extension
+        if (!jsonFile.FileName.EndsWith(".json", StringComparison.OrdinalIgnoreCase))
+        {
+            ModelState.AddModelError("", "Only .json files are accepted");
+            return View();
+        }
+
+        // Validate file size (5MB limit)
+        if (jsonFile.Length > 5 * 1024 * 1024)
+        {
+            ModelState.AddModelError("", "File size must be less than 5MB");
+            return View();
+        }
+
+        var domainUser = await GetCurrentDomainUserAsync();
+        if (domainUser == null)
+        {
+            return RedirectToAction("Login", "Account");
+        }
+
+        try
+        {
+            // Read file content
+            string jsonContent;
+            using (var reader = new StreamReader(jsonFile.OpenReadStream()))
+            {
+                jsonContent = await reader.ReadToEndAsync();
+            }
+
+            // Parse JSON
+            JsonDocument jsonDoc;
+            try
+            {
+                jsonDoc = JsonDocument.Parse(jsonContent);
+            }
+            catch (JsonException)
+            {
+                ModelState.AddModelError("", "Invalid JSON format. Please check your file syntax.");
+                return View();
+            }
+
+            // Extract quests array
+            if (!jsonDoc.RootElement.TryGetProperty("quests", out var questsElement))
+            {
+                ModelState.AddModelError("", "JSON must contain a 'quests' array");
+                return View();
+            }
+
+            if (questsElement.ValueKind != JsonValueKind.Array)
+            {
+                ModelState.AddModelError("", "'quests' must be an array");
+                return View();
+            }
+
+            var questsList = new List<QuestImportDto>();
+            foreach (var questElement in questsElement.EnumerateArray())
+            {
+                try
+                {
+                    var questImport = new QuestImportDto
+                    {
+                        Title = questElement.TryGetProperty("title", out var titleProp) ? titleProp.GetString() ?? "" : "",
+                        Description = questElement.TryGetProperty("description", out var descProp) ? descProp.GetString() ?? "" : "",
+                        XPReward = questElement.TryGetProperty("xpReward", out var xpProp) ? xpProp.GetInt32() : 0,
+                        GoldReward = questElement.TryGetProperty("goldReward", out var goldProp) ? goldProp.GetInt32() : 0,
+                        Difficulty = questElement.TryGetProperty("difficulty", out var diffProp) ? diffProp.GetString() ?? "" : "",
+                        QuestType = questElement.TryGetProperty("questType", out var typeProp) ? typeProp.GetString() : null,
+                        StrengthBonus = questElement.TryGetProperty("strengthBonus", out var strProp) ? strProp.GetInt32() : 0,
+                        IntelligenceBonus = questElement.TryGetProperty("intelligenceBonus", out var intProp) ? intProp.GetInt32() : 0,
+                        ConstitutionBonus = questElement.TryGetProperty("constitutionBonus", out var conProp) ? conProp.GetInt32() : 0
+                    };
+                    questsList.Add(questImport);
+                }
+                catch (Exception ex)
+                {
+                    ModelState.AddModelError("", $"Error parsing quest data: {ex.Message}");
+                    return View();
+                }
+            }
+
+            if (questsList.Count == 0)
+            {
+                ModelState.AddModelError("", "No quests found in file");
+                return View();
+            }
+
+            // Limit to 100 quests to prevent abuse
+            if (questsList.Count > 100)
+            {
+                ModelState.AddModelError("", "Maximum of 100 quests can be imported at once");
+                return View();
+            }
+
+            // Call service to import quests
+            var command = new ImportQuestsCommand
+            {
+                Quests = questsList,
+                PartyId = domainUser.PartyId,
+                DMId = domainUser.Id
+            };
+
+            var result = await _questService.ImportQuestsAsync(command);
+
+            if (result.IsSuccess)
+            {
+                TempData["SuccessMessage"] = result.Message ?? $"Successfully imported {result.Data?.Count ?? 0} quest(s)";
+                return RedirectToAction(nameof(Index));
+            }
+            else
+            {
+                // Handle validation errors
+                if (result.ValidationErrors.Any())
+                {
+                    foreach (var validationError in result.ValidationErrors)
+                    {
+                        ModelState.AddModelError("", $"{validationError.Field}: {validationError.Message}");
+                    }
+                }
+                else if (result.Errors.Any())
+                {
+                    foreach (var error in result.Errors)
+                    {
+                        ModelState.AddModelError("", error);
+                    }
+                }
+
+                return View();
+            }
+        }
+        catch (Exception ex)
+        {
+            ModelState.AddModelError("", $"An error occurred while importing quests: {ex.Message}");
+            return View();
+        }
     }
 }

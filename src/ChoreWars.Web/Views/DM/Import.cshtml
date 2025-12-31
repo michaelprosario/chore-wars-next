@@ -1,0 +1,286 @@
+@{
+    ViewData["Title"] = "Import Quests";
+}
+
+<div class="row justify-content-center">
+    <div class="col-lg-10">
+        <h2>@ViewData["Title"]</h2>
+        <p class="lead">Upload a JSON file to import multiple quests at once</p>
+        <hr />
+
+        <div asp-validation-summary="All" class="text-danger mb-3"></div>
+
+        <form asp-action="Import" method="post" enctype="multipart/form-data">
+            <div class="mb-4">
+                <label for="jsonFile" class="form-label fw-bold">Select JSON File</label>
+                <input type="file" class="form-control" id="jsonFile" name="jsonFile" accept=".json" required />
+                <div class="form-text">Maximum file size: 5MB. Maximum quests per file: 100.</div>
+            </div>
+
+            <div class="d-grid gap-2">
+                <button type="submit" class="btn btn-primary btn-lg">Import Quests</button>
+                <a asp-action="Index" class="btn btn-outline-secondary">Cancel</a>
+            </div>
+        </form>
+
+        <hr class="my-5" />
+
+        <div class="documentation">
+            <h3>JSON Format Documentation</h3>
+
+            <div class="accordion" id="importDocumentation">
+                <!-- Quick Example -->
+                <div class="accordion-item">
+                    <h2 class="accordion-header" id="headingExample">
+                        <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseExample" aria-expanded="true" aria-controls="collapseExample">
+                            Quick Example
+                        </button>
+                    </h2>
+                    <div id="collapseExample" class="accordion-collapse collapse show" aria-labelledby="headingExample" data-bs-parent="#importDocumentation">
+                        <div class="accordion-body">
+                            <p>Here's a simple example with 3 quests:</p>
+                            <pre class="bg-light p-3 rounded"><code>{
+  "quests": [
+    {
+      "title": "Wash the Dishes",
+      "description": "Clean all dishes in the sink and put them away",
+      "xpReward": 50,
+      "goldReward": 10,
+      "difficulty": "Easy",
+      "questType": "Daily",
+      "constitutionBonus": 1
+    },
+    {
+      "title": "Vacuum the House",
+      "description": "Vacuum all carpeted areas in the house",
+      "xpReward": 75,
+      "goldReward": 15,
+      "difficulty": "Medium",
+      "questType": "Weekly",
+      "strengthBonus": 1
+    },
+    {
+      "title": "Organize the Garage",
+      "description": "Sort, organize, and clean the entire garage",
+      "xpReward": 200,
+      "goldReward": 50,
+      "difficulty": "Hard",
+      "questType": "OneTime",
+      "strengthBonus": 2,
+      "constitutionBonus": 1
+    }
+  ]
+}</code></pre>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Schema Reference -->
+                <div class="accordion-item">
+                    <h2 class="accordion-header" id="headingSchema">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseSchema" aria-expanded="false" aria-controls="collapseSchema">
+                            Schema Reference
+                        </button>
+                    </h2>
+                    <div id="collapseSchema" class="accordion-collapse collapse" aria-labelledby="headingSchema" data-bs-parent="#importDocumentation">
+                        <div class="accordion-body">
+                            <h5>Required Fields</h5>
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>Field</th>
+                                        <th>Type</th>
+                                        <th>Validation</th>
+                                        <th>Description</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td><code>title</code></td>
+                                        <td>string</td>
+                                        <td>1-200 characters</td>
+                                        <td>The name of the quest</td>
+                                    </tr>
+                                    <tr>
+                                        <td><code>description</code></td>
+                                        <td>string</td>
+                                        <td>1-1000 characters</td>
+                                        <td>What needs to be done</td>
+                                    </tr>
+                                    <tr>
+                                        <td><code>xpReward</code></td>
+                                        <td>number</td>
+                                        <td>1-1000</td>
+                                        <td>Experience points awarded</td>
+                                    </tr>
+                                    <tr>
+                                        <td><code>goldReward</code></td>
+                                        <td>number</td>
+                                        <td>0-1000</td>
+                                        <td>Gold coins awarded</td>
+                                    </tr>
+                                    <tr>
+                                        <td><code>difficulty</code></td>
+                                        <td>string</td>
+                                        <td>Easy | Medium | Hard</td>
+                                        <td>Quest difficulty level (case-insensitive)</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+
+                            <h5 class="mt-4">Optional Fields</h5>
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>Field</th>
+                                        <th>Type</th>
+                                        <th>Default</th>
+                                        <th>Validation</th>
+                                        <th>Description</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td><code>questType</code></td>
+                                        <td>string</td>
+                                        <td>OneTime</td>
+                                        <td>OneTime | Daily | Weekly</td>
+                                        <td>How often the quest recurs (case-insensitive)</td>
+                                    </tr>
+                                    <tr>
+                                        <td><code>strengthBonus</code></td>
+                                        <td>number</td>
+                                        <td>0</td>
+                                        <td>0-10</td>
+                                        <td>💪 Strength stat bonus for physical chores</td>
+                                    </tr>
+                                    <tr>
+                                        <td><code>intelligenceBonus</code></td>
+                                        <td>number</td>
+                                        <td>0</td>
+                                        <td>0-10</td>
+                                        <td>🧠 Intelligence stat bonus for mental tasks</td>
+                                    </tr>
+                                    <tr>
+                                        <td><code>constitutionBonus</code></td>
+                                        <td>number</td>
+                                        <td>0</td>
+                                        <td>0-10</td>
+                                        <td>❤️ Constitution stat bonus for routine chores</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+
+                            <h5 class="mt-4">Auto-Generated Fields</h5>
+                            <p>These fields are automatically set and should NOT be included in your JSON:</p>
+                            <ul>
+                                <li><code>id</code> - Unique quest identifier (new GUID)</li>
+                                <li><code>partyId</code> - Your party ID</li>
+                                <li><code>createdByDMId</code> - Your DM user ID</li>
+                                <li><code>createdAt</code> - Current timestamp</li>
+                                <li><code>isActive</code> - Set to true</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- More Examples -->
+                <div class="accordion-item">
+                    <h2 class="accordion-header" id="headingMoreExamples">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseMoreExamples" aria-expanded="false" aria-controls="collapseMoreExamples">
+                            More Examples
+                        </button>
+                    </h2>
+                    <div id="collapseMoreExamples" class="accordion-collapse collapse" aria-labelledby="headingMoreExamples" data-bs-parent="#importDocumentation">
+                        <div class="accordion-body">
+                            <h5>Simple Quest (Minimal Fields)</h5>
+                            <pre class="bg-light p-3 rounded"><code>{
+  "quests": [
+    {
+      "title": "Take Out Trash",
+      "description": "Take the trash and recycling bins to the curb",
+      "xpReward": 30,
+      "goldReward": 5,
+      "difficulty": "Easy"
+    }
+  ]
+}</code></pre>
+
+                            <h5 class="mt-3">Physical Chore (Strength Bonus)</h5>
+                            <pre class="bg-light p-3 rounded"><code>{
+  "quests": [
+    {
+      "title": "Mow the Lawn",
+      "description": "Mow the entire front and back yard",
+      "xpReward": 100,
+      "goldReward": 20,
+      "difficulty": "Medium",
+      "questType": "Weekly",
+      "strengthBonus": 2
+    }
+  ]
+}</code></pre>
+
+                            <h5 class="mt-3">Mental Task (Intelligence Bonus)</h5>
+                            <pre class="bg-light p-3 rounded"><code>{
+  "quests": [
+    {
+      "title": "Plan Weekly Meals",
+      "description": "Create a meal plan and shopping list for the week",
+      "xpReward": 80,
+      "goldReward": 15,
+      "difficulty": "Medium",
+      "questType": "Weekly",
+      "intelligenceBonus": 2
+    }
+  ]
+}</code></pre>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Validation & Errors -->
+                <div class="accordion-item">
+                    <h2 class="accordion-header" id="headingValidation">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseValidation" aria-expanded="false" aria-controls="collapseValidation">
+                            Validation & Error Handling
+                        </button>
+                    </h2>
+                    <div id="collapseValidation" class="accordion-collapse collapse" aria-labelledby="headingValidation" data-bs-parent="#importDocumentation">
+                        <div class="accordion-body">
+                            <h5>Import Strategy</h5>
+                            <p>This import uses an <strong>all-or-nothing</strong> approach:</p>
+                            <ul>
+                                <li>All quests are validated before importing</li>
+                                <li>If ANY quest has validation errors, NO quests will be imported</li>
+                                <li>You'll receive detailed error messages for each invalid quest</li>
+                                <li>Fix the errors and re-upload the file</li>
+                            </ul>
+
+                            <h5 class="mt-3">Common Errors</h5>
+                            <div class="alert alert-warning">
+                                <strong>Invalid JSON format:</strong> Use a JSON validator to check syntax (missing commas, brackets, quotes)
+                            </div>
+                            <div class="alert alert-warning">
+                                <strong>Missing 'quests' array:</strong> The root object must contain a "quests" property that is an array
+                            </div>
+                            <div class="alert alert-warning">
+                                <strong>Invalid difficulty:</strong> Must be exactly "Easy", "Medium", or "Hard" (case-insensitive)
+                            </div>
+                            <div class="alert alert-warning">
+                                <strong>Invalid questType:</strong> Must be "OneTime", "Daily", or "Weekly" (case-insensitive)
+                            </div>
+                            <div class="alert alert-warning">
+                                <strong>Value out of range:</strong> Check that XP (1-1000), Gold (0-1000), and stat bonuses (0-10) are within limits
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

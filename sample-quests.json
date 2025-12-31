@@ -1,0 +1,48 @@
+{
+  "quests": [
+    {
+      "title": "Wash the Dishes",
+      "description": "Clean all dishes in the sink and put them away",
+      "xpReward": 50,
+      "goldReward": 10,
+      "difficulty": "Easy",
+      "questType": "Daily",
+      "constitutionBonus": 1
+    },
+    {
+      "title": "Vacuum the House",
+      "description": "Vacuum all carpeted areas in the house",
+      "xpReward": 75,
+      "goldReward": 15,
+      "difficulty": "Medium",
+      "questType": "Weekly",
+      "strengthBonus": 1
+    },
+    {
+      "title": "Organize the Garage",
+      "description": "Sort, organize, and clean the entire garage",
+      "xpReward": 200,
+      "goldReward": 50,
+      "difficulty": "Hard",
+      "questType": "OneTime",
+      "strengthBonus": 2,
+      "constitutionBonus": 1
+    },
+    {
+      "title": "Take Out Trash",
+      "description": "Take the trash and recycling bins to the curb",
+      "xpReward": 30,
+      "goldReward": 5,
+      "difficulty": "Easy"
+    },
+    {
+      "title": "Mow the Lawn",
+      "description": "Mow the entire front and back yard",
+      "xpReward": 100,
+      "goldReward": 20,
+      "difficulty": "Medium",
+      "questType": "Weekly",
+      "strengthBonus": 2
+    }
+  ]
+}

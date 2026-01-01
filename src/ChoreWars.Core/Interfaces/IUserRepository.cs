@@ -8,4 +8,5 @@ public interface IUserRepository : IRepository<User>
     Task<User?> GetUserWithStatsAsync(Guid userId);
     Task<IEnumerable<User>> GetPartyMembersAsync(Guid partyId);
     Task<IEnumerable<User>> GetWeeklyLeaderboardAsync(Guid partyId);
+    Task<IEnumerable<User>> GetGoldLeaderboardAsync(Guid partyId);
 }

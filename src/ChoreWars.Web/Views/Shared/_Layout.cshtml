@@ -25,6 +25,12 @@
                         </li>
                         @if (User.Identity?.IsAuthenticated == true)
                         {
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-area="" asp-controller="Leaderboard" asp-action="Index">Leaderboard</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-area="" asp-controller="Quest" asp-action="Index">Quest Board</a>
+                            </li>
                             @if (User.IsInRole("DungeonMaster"))
                             {
                                 <li class="nav-item">

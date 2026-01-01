@@ -40,4 +40,13 @@ public class UserRepository : Repository<User>, IUserRepository
             .ThenByDescending(u => u.CurrentXP)
             .ToListAsync();
     }
+
+    public async Task<IEnumerable<User>> GetGoldLeaderboardAsync(Guid partyId)
+    {
+        return await _dbSet
+            .Where(u => u.PartyId == partyId)
+            .OrderByDescending(u => u.TotalGold)
+            .ThenByDescending(u => u.CurrentLevel)
+            .ToListAsync();
+    }
 }

@@ -1,0 +1,127 @@
+@model IEnumerable<ChoreWars.Core.Entities.User>
+@{
+    ViewData["Title"] = "Party Leaderboard";
+    var currentUser = ViewBag.CurrentUser as ChoreWars.Core.Entities.User;
+    var sortBy = ViewBag.SortBy as string ?? "xp";
+    var userList = Model.ToList();
+}
+
+<div class="container mt-4">
+    <h1 class="mb-4">🏆 Party Leaderboard</h1>
+
+    <!-- Tab Navigation -->
+    <ul class="nav nav-tabs mb-4" id="leaderboardTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <a class="nav-link @(sortBy == "xp" ? "active" : "")"
+               href="@Url.Action("Index", "Leaderboard", new { sortBy = "xp" })">
+                ⭐ XP Ranking
+            </a>
+        </li>
+        <li class="nav-item" role="presentation">
+            <a class="nav-link @(sortBy == "gold" ? "active" : "")"
+               href="@Url.Action("Index", "Leaderboard", new { sortBy = "gold" })">
+                💰 Gold Ranking
+            </a>
+        </li>
+    </ul>
+
+    <!-- Leaderboard Grid -->
+    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+        @for (int i = 0; i < userList.Count; i++)
+        {
+            var user = userList[i];
+            var rank = i + 1;
+
+            // Determine gradient based on rank
+            var gradientStyle = rank switch
+            {
+                1 => "background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);", // Gold
+                2 => "background: linear-gradient(135deg, #C0C0C0 0%, #808080 100%);", // Silver
+                3 => "background: linear-gradient(135deg, #CD7F32 0%, #8B4513 100%);", // Bronze
+                _ => "background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);"  // Default purple
+            };
+
+            var isCurrentUser = currentUser != null && user.Id == currentUser.Id;
+            var borderClass = isCurrentUser ? "border border-warning border-3" : "";
+
+            <div class="col">
+                <div class="card h-100 @borderClass" style="@gradientStyle color: white;">
+                    <div class="card-body">
+                        <!-- Rank Badge -->
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <h3 class="mb-0">
+                                @if (rank == 1) { <span>🥇</span> }
+                                else if (rank == 2) { <span>🥈</span> }
+                                else if (rank == 3) { <span>🥉</span> }
+                                else { <span>#@rank</span> }
+                            </h3>
+                            @if (isCurrentUser)
+                            {
+                                <span class="badge bg-warning text-dark">You</span>
+                            }
+                        </div>
+
+                        <!-- User Info -->
+                        <h5 class="card-title mb-2">
+                            @if (!string.IsNullOrEmpty(user.AvatarUrl))
+                            {
+                                <img src="@user.AvatarUrl" alt="@user.DisplayName"
+                                     class="rounded-circle me-2"
+                                     style="width: 40px; height: 40px; object-fit: cover;">
+                            }
+                            @user.DisplayName
+                        </h5>
+                        <p class="mb-3"><strong>Level @user.CurrentLevel</strong></p>
+
+                        <!-- XP Progress Bar -->
+                        <div class="progress mb-3" style="height: 25px; background-color: rgba(255,255,255,0.3);">
+                            <div class="progress-bar bg-success" role="progressbar"
+                                 style="width: @((double)user.CurrentXP / user.XPToNextLevel * 100)%"
+                                 aria-valuenow="@user.CurrentXP" aria-valuemin="0" aria-valuemax="@user.XPToNextLevel">
+                                @user.CurrentXP / @user.XPToNextLevel XP
+                            </div>
+                        </div>
+
+                        <!-- Stats Grid -->
+                        <div class="row text-center mb-3">
+                            <div class="col-6">
+                                <strong>💰 Gold</strong><br />
+                                <span class="h5">@user.TotalGold</span>
+                            </div>
+                            <div class="col-6">
+                                <strong>⭐ Total XP</strong><br />
+                                <span class="h5">@user.CurrentXP</span>
+                            </div>
+                        </div>
+
+                        <hr style="border-color: rgba(255,255,255,0.3);" />
+
+                        <!-- RPG Stats -->
+                        <div class="row text-center">
+                            <div class="col-4">
+                                <strong>💪 STR</strong><br />
+                                @user.Strength
+                            </div>
+                            <div class="col-4">
+                                <strong>🧠 INT</strong><br />
+                                @user.Intelligence
+                            </div>
+                            <div class="col-4">
+                                <strong>❤️ CON</strong><br />
+                                @user.Constitution
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+
+    @if (!userList.Any())
+    {
+        <div class="alert alert-info mt-4">
+            <h5>No party members yet!</h5>
+            <p>Invite others to join your party to see them on the leaderboard.</p>
+        </div>
+    }
+</div>

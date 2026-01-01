@@ -8,10 +8,22 @@
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/ChoreWars.Web.styles.css" asp-append-version="true" />
+
+    <!-- Dark Mode: Apply theme before body renders to prevent flash -->
+    <script>
+        (function() {
+            const STORAGE_KEY = 'chorewars-theme';
+            const DEFAULT_THEME = 'dark';
+            const theme = localStorage.getItem(STORAGE_KEY) || DEFAULT_THEME;
+            if (theme === 'dark') {
+                document.documentElement.setAttribute('data-bs-theme', 'dark');
+            }
+        })();
+    </script>
 </head>
 <body>
     <header>
-        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
+        <nav class="navbar navbar-expand-sm navbar-toggleable-sm border-bottom box-shadow mb-3">
             <div class="container-fluid">
                 <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">ChoreWars.Web</a>
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
@@ -21,20 +33,20 @@
                 <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
                     <ul class="navbar-nav flex-grow-1">
                         <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
+                            <a class="nav-link" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
                         </li>
                         @if (User.Identity?.IsAuthenticated == true)
                         {
                             <li class="nav-item">
-                                <a class="nav-link text-dark" asp-area="" asp-controller="Leaderboard" asp-action="Index">Leaderboard</a>
+                                <a class="nav-link" asp-area="" asp-controller="Leaderboard" asp-action="Index">Leaderboard</a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link text-dark" asp-area="" asp-controller="Quest" asp-action="Index">Quest Board</a>
+                                <a class="nav-link" asp-area="" asp-controller="Quest" asp-action="Index">Quest Board</a>
                             </li>
                             @if (User.IsInRole("DungeonMaster"))
                             {
                                 <li class="nav-item">
-                                    <a class="nav-link text-dark" asp-area="" asp-controller="DM" asp-action="Index">DM Dashboard</a>
+                                    <a class="nav-link" asp-area="" asp-controller="DM" asp-action="Index">DM Dashboard</a>
                                 </li>
                             }
                         }
@@ -43,21 +55,31 @@
                         @if (User.Identity?.IsAuthenticated == true)
                         {
                             <li class="nav-item">
-                                <span class="nav-link text-dark">Hello, @User.Identity.Name!</span>
+                                <span class="nav-link">Hello, @User.Identity.Name!</span>
+                            </li>
+                            <li class="nav-item">
+                                <button id="theme-toggle"
+                                        class="btn btn-link nav-link"
+                                        onclick="window.ChoreWarsTheme.toggle()"
+                                        type="button"
+                                        aria-label="Toggle dark mode"
+                                        title="Toggle dark mode">
+                                    🌙
+                                </button>
                             </li>
                             <li class="nav-item">
                                 <form asp-controller="Account" asp-action="Logout" method="post" class="d-inline">
-                                    <button type="submit" class="btn btn-link nav-link text-dark">Logout</button>
+                                    <button type="submit" class="btn btn-link nav-link">Logout</button>
                                 </form>
                             </li>
                         }
                         else
                         {
                             <li class="nav-item">
-                                <a class="nav-link text-dark" asp-controller="Account" asp-action="Login">Login</a>
+                                <a class="nav-link" asp-controller="Account" asp-action="Login">Login</a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link text-dark" asp-controller="Account" asp-action="Register">Register</a>
+                                <a class="nav-link" asp-controller="Account" asp-action="Register">Register</a>
                             </li>
                         }
                     </ul>

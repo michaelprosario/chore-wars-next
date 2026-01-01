@@ -46,3 +46,58 @@ button.accept-policy {
   white-space: nowrap;
   line-height: 60px;
 }
+
+/* ========================================
+   DARK MODE OVERRIDES
+   ======================================== */
+
+[data-bs-theme="dark"] {
+  /* Link color - use Bootstrap's dark mode link color */
+  a {
+    color: #6ea8fe;
+  }
+
+  a:hover {
+    color: #8bb9fe;
+  }
+
+  /* Primary button - use Bootstrap's dark mode primary */
+  .btn-primary {
+    color: #fff;
+    background-color: #0d6efd;
+    border-color: #0d6efd;
+  }
+
+  .btn-primary:hover {
+    background-color: #0b5ed7;
+    border-color: #0a58ca;
+  }
+
+  /* Active nav pills */
+  .nav-pills .nav-link.active,
+  .nav-pills .show > .nav-link {
+    color: #fff;
+    background-color: #0d6efd;
+    border-color: #0d6efd;
+  }
+
+  /* Borders - use Bootstrap's dark border color */
+  .border-top {
+    border-top-color: var(--bs-border-color) !important;
+  }
+
+  .border-bottom {
+    border-bottom-color: var(--bs-border-color) !important;
+  }
+
+  /* Box shadow - darker for dark mode */
+  .box-shadow {
+    box-shadow: 0 .25rem .75rem rgba(0, 0, 0, .3);
+  }
+
+  /* Footer */
+  .footer {
+    background-color: var(--bs-body-bg);
+    color: var(--bs-body-color);
+  }
+}

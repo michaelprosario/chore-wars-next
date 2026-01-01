@@ -28,10 +28,10 @@
     <!-- Player Stats Section -->
     @if (user != null)
     {
-        <div class="card mb-4" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+        <div class="card mb-4 gradient-purple">
             <div class="card-body">
                 <h5 class="card-title">👤 @user.DisplayName - Level @user.CurrentLevel</h5>
-                <div class="progress mb-3" style="height: 30px;">
+                <div class="progress mb-3 gradient-card-progress-bg" style="height: 30px;">
                     <div class="progress-bar bg-warning" role="progressbar"
                          style="width: @((double)user.CurrentXP / user.XPToNextLevel * 100)%"
                          aria-valuenow="@user.CurrentXP" aria-valuemin="0" aria-valuemax="@user.XPToNextLevel">
@@ -104,6 +104,7 @@
                                     </div>
                                 }
                             </div>
+ 
                             <div class="card-footer">
                                 @if (quest.CompletionStatus == "Claimed")
                                 {

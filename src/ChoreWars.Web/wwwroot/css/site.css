@@ -9,7 +9,15 @@ html {
 }
 
 .btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
-  box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
+  box-shadow: 0 0 0 0.1rem var(--bs-body-bg), 0 0 0 0.25rem #258cfb;
+}
+
+[data-bs-theme="dark"] .btn:focus,
+[data-bs-theme="dark"] .btn:active:focus,
+[data-bs-theme="dark"] .btn-link.nav-link:focus,
+[data-bs-theme="dark"] .form-control:focus,
+[data-bs-theme="dark"] .form-check-input:focus {
+  box-shadow: 0 0 0 0.1rem var(--bs-body-bg), 0 0 0 0.25rem #6ea8fe;
 }
 
 html {
@@ -28,4 +36,94 @@ body {
 
 .form-floating > .form-control-plaintext:focus::placeholder, .form-floating > .form-control:focus::placeholder {
   text-align: start;
+}
+
+/* ========================================
+   DARK MODE GRADIENTS
+   ======================================== */
+
+/* Light Mode Gradients (Default) */
+:root {
+  /* Leaderboard Rank Gradients */
+  --gradient-gold-start: #FFD700;
+  --gradient-gold-end: #FFA500;
+
+  --gradient-silver-start: #C0C0C0;
+  --gradient-silver-end: #808080;
+
+  --gradient-bronze-start: #CD7F32;
+  --gradient-bronze-end: #8B4513;
+
+  --gradient-purple-start: #667eea;
+  --gradient-purple-end: #764ba2;
+
+  /* Text color for gradient cards */
+  --gradient-card-text: white;
+  --gradient-card-border: rgba(255, 255, 255, 0.3);
+  --gradient-card-progress-bg: rgba(255, 255, 255, 0.3);
+}
+
+/* Dark Mode Gradients */
+[data-bs-theme="dark"] {
+  /* Darker, higher contrast gradients for dark mode */
+  --gradient-gold-start: #DAA520;
+  --gradient-gold-end: #CC8400;
+
+  --gradient-silver-start: #A8A8A8;
+  --gradient-silver-end: #6E6E6E;
+
+  --gradient-bronze-start: #B8732D;
+  --gradient-bronze-end: #7A3E13;
+
+  --gradient-purple-start: #5568D3;
+  --gradient-purple-end: #5F3D8A;
+
+  /* Keep text white for readability */
+  --gradient-card-text: white;
+  --gradient-card-border: rgba(255, 255, 255, 0.2);
+  --gradient-card-progress-bg: rgba(255, 255, 255, 0.2);
+}
+
+/* Gradient Classes */
+.gradient-gold {
+  background: linear-gradient(135deg, var(--gradient-gold-start) 0%, var(--gradient-gold-end) 100%) !important;
+  color: var(--gradient-card-text) !important;
+}
+
+.gradient-silver {
+  background: linear-gradient(135deg, var(--gradient-silver-start) 0%, var(--gradient-silver-end) 100%) !important;
+  color: var(--gradient-card-text) !important;
+}
+
+.gradient-bronze {
+  background: linear-gradient(135deg, var(--gradient-bronze-start) 0%, var(--gradient-bronze-end) 100%) !important;
+  color: var(--gradient-card-text) !important;
+}
+
+.gradient-purple {
+  background: linear-gradient(135deg, var(--gradient-purple-start) 0%, var(--gradient-purple-end) 100%) !important;
+  color: var(--gradient-card-text) !important;
+}
+
+/* Gradient card helper classes */
+.gradient-card-border {
+  border-color: var(--gradient-card-border) !important;
+}
+
+.gradient-card-progress-bg {
+  background-color: var(--gradient-card-progress-bg) !important;
+}
+
+/* ========================================
+   HOME PAGE DARK MODE ADJUSTMENTS
+   ======================================== */
+
+/* Stat showcase section background */
+.stat-showcase {
+  background-color: var(--bs-light);
+  border-radius: var(--bs-border-radius);
+}
+
+[data-bs-theme="dark"] .stat-showcase {
+  background-color: var(--bs-dark-bg-subtle);
 }

@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   chorewars-web:
     build:
@@ -11,14 +9,14 @@ services:
       - "5287:8080"  # Map host port 5287 to container port 8080
     volumes:
       # Persist SQLite database
-      - chorewars-data:/app/data
+      - chorewars-data:/workspaces/chore-wars-next/mydata
       # Mount the database file from Web directory to data directory
-      - ./src/ChoreWars.Web/chorewars.db:/app/data/chorewars.db
+      - ./src/ChoreWars.Web/chorewars.db:/workspaces/chore-wars-next/mydata/chorewars.db
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
       - ASPNETCORE_URLS=http://+:8080
-      # Database connection string (update path to use /app/data)
-      - ConnectionStrings__DefaultConnection=Data Source=/app/data/chorewars.db
+      # Database connection string (update path to use /workspaces/chore-wars-next/mydata)
+      - ConnectionStrings__DefaultConnection=Data Source=/workspaces/chore-wars-next/mydata/chorewars.db
     networks:
       - chorewars-network
     healthcheck:
@@ -37,7 +35,7 @@ volumes:
     driver_opts:
       type: none
       o: bind
-      device: ./data
+      device: ./mydata
 
 networks:
   chorewars-network:

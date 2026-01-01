@@ -38,7 +38,7 @@ docs/
 
 # Node modules (if any)
 **/node_modules/
-**/wwwroot/lib/
+# **/wwwroot/lib/  # Commented out - we need these libraries in the container
 
 # OS files
 .DS_Store

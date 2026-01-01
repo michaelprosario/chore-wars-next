@@ -1,0 +1,53 @@
+# Build artifacts
+**/bin/
+**/obj/
+**/out/
+**/publish/
+
+# IDE and editor files
+.vs/
+.vscode/
+.idea/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Git
+.git/
+.gitignore
+.gitattributes
+
+# Docker
+Dockerfile
+.dockerignore
+docker-compose*.yml
+
+# Documentation
+*.md
+docs/
+
+# Logs
+**/logs/
+*.log
+
+# Database files (will be mounted as volume)
+*.db
+*.db-shm
+*.db-wal
+
+# Node modules (if any)
+**/node_modules/
+**/wwwroot/lib/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Test files
+**/*Tests/
+**/TestResults/
+
+# Claude Code
+.claude/
+prompt/

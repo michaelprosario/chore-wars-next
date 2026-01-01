@@ -1,0 +1,44 @@
+version: '3.8'
+
+services:
+  chorewars-web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: chorewars-web
+    restart: unless-stopped
+    ports:
+      - "5287:8080"  # Map host port 5287 to container port 8080
+    volumes:
+      # Persist SQLite database
+      - chorewars-data:/app/data
+      # Mount the database file from Web directory to data directory
+      - ./src/ChoreWars.Web/chorewars.db:/app/data/chorewars.db
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ASPNETCORE_URLS=http://+:8080
+      # Database connection string (update path to use /app/data)
+      - ConnectionStrings__DefaultConnection=Data Source=/app/data/chorewars.db
+    networks:
+      - chorewars-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 3s
+      start_period: 40s
+      retries: 3
+    labels:
+      - "com.chorewars.description=ChoreWars Web Application"
+      - "com.chorewars.version=1.0"
+
+volumes:
+  chorewars-data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ./data
+
+networks:
+  chorewars-network:
+    driver: bridge

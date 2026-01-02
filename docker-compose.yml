@@ -1,4 +1,22 @@
 services:
+  postgres:
+    image: postgres:17-alpine
+    container_name: chorewars-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: chorewars
+      POSTGRES_USER: chorewars
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-change_this_password}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      - chorewars-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U chorewars"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   chorewars-web:
     build:
       context: .
@@ -7,16 +25,13 @@ services:
     restart: unless-stopped
     ports:
       - "5287:8080"  # Map host port 5287 to container port 8080
-    volumes:
-      # Persist SQLite database
-      - chorewars-data:/workspaces/chore-wars-next/mydata
-      # Mount the database file from Web directory to data directory
-      - ./src/ChoreWars.Web/chorewars.db:/workspaces/chore-wars-next/mydata/chorewars.db
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
       - ASPNETCORE_URLS=http://+:8080
-      # Database connection string (update path to use /workspaces/chore-wars-next/mydata)
-      - ConnectionStrings__DefaultConnection=Data Source=/workspaces/chore-wars-next/mydata/chorewars.db
+      - ConnectionStrings__DefaultConnection=Host=postgres;Database=chorewars;Username=chorewars;Password=${POSTGRES_PASSWORD:-change_this_password}
+    depends_on:
+      postgres:
+        condition: service_healthy
     networks:
       - chorewars-network
     healthcheck:
@@ -30,12 +45,8 @@ services:
       - "com.chorewars.version=1.0"
 
 volumes:
-  chorewars-data:
+  postgres-data:
     driver: local
-    driver_opts:
-      type: none
-      o: bind
-      device: ./mydata
 
 networks:
   chorewars-network:

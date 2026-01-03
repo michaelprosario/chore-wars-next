@@ -79,7 +79,7 @@ using (var scope = app.Services.CreateScope())
     var context = services.GetRequiredService<ApplicationDbContext>();
     
     // Create database and apply migrations if needed
-    context.Database.Migrate();
+    //context.Database.Migrate();
     
     await DbInitializer.Initialize(services);
 }

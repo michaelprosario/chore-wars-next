@@ -10,17 +10,18 @@ services:
     ports:
       - "5287:8080"  # HTTP
     volumes:
-      # Persist SQLite database
-      - ./data:/app/data
       # Hot reload support - mount source code
       - ./src/ChoreWars.Web:/app/src/ChoreWars.Web:ro
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_URLS=http://+:8080
-      - ConnectionStrings__DefaultConnection=Data Source=/app/data/chorewars.db
+      - ConnectionStrings__DefaultConnection=Host=host.docker.internal;Database=chorewars;Username=postgres;Password=Foobar321;Port=5432
       # Enable detailed errors in development
       - Logging__LogLevel__Default=Debug
       - Logging__LogLevel__Microsoft.AspNetCore=Warning
+      - Logging__LogLevel__Microsoft.EntityFrameworkCore.Database.Command=Information
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     networks:
       - chorewars-network
     healthcheck:

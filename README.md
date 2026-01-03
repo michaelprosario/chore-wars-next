@@ -605,3 +605,12 @@ If you find ChoreWars useful, please consider starring the repository!
 *May your XP be high and your chores be swift!* ⚔️
 
 </div>
+
+
+
+### How do you create the first migration?
+
+```
+cd /workspaces/chore-wars-next/src/ChoreWars.Web && dotnet ef migrations add InitialCreate --project ../ChoreWars.Infrastructure --context ApplicationDbContext
+```
+

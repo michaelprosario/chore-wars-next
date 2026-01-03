@@ -1,22 +1,4 @@
 services:
-  postgres:
-    image: postgres:17-alpine
-    container_name: chorewars-postgres
-    restart: unless-stopped
-    environment:
-      POSTGRES_DB: chorewars
-      POSTGRES_USER: chorewars
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-change_this_password}
-    volumes:
-      - postgres-data:/var/lib/postgresql/data
-    networks:
-      - chorewars-network
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U chorewars"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
   chorewars-web:
     build:
       context: .
@@ -28,12 +10,9 @@ services:
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
       - ASPNETCORE_URLS=http://+:8080
-      - ConnectionStrings__DefaultConnection=Host=postgres;Database=chorewars;Username=chorewars;Password=${POSTGRES_PASSWORD:-change_this_password}
-    depends_on:
-      postgres:
-        condition: service_healthy
+      - ConnectionStrings__DefaultConnection=Host=postgres;Database=chorewars;Username=chorewars;Password=${POSTGRES_PASSWORD:-fixMe}
     networks:
-      - chorewars-network
+      - postgres
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
       interval: 30s
@@ -44,10 +23,7 @@ services:
       - "com.chorewars.description=ChoreWars Web Application"
       - "com.chorewars.version=1.0"
 
-volumes:
-  postgres-data:
-    driver: local
 
 networks:
-  chorewars-network:
-    driver: bridge
+  postgres:
+    external: true
